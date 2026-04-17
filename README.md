@@ -1,4 +1,4 @@
-# 📖 ReadingDiary - Personal Book Tracker with AI Search
+# 📖 BookClubApp - Personal Book Tracker with AI Search
 
 A personal reading diary to save, rate, and reflect on books - 
 with an AI-powered assistant to help you find your next read.
