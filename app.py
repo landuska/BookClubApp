@@ -1,14 +1,15 @@
 from flask import Flask
-import os
+from models import *
 
 app = Flask(__name__)
 
-current_file_path = os.path.abspath(__file__)
-project_root = os.path.dirname(current_file_path)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:dlyaraboty_Python2026@localhost:5432/postgres"
 
+db.init_app(app)
 
-
+with app.app_context():
+    db.create_all()
 
 
 
