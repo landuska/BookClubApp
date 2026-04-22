@@ -1,6 +1,7 @@
 from models import User, Book, Author, Community, db
 from sqlalchemy.exc import IntegrityError
 from datetime import date
+from typing import Type
 
 
 class DataManager():
@@ -80,4 +81,16 @@ class DataManager():
                 raise
         else:
             raise ValueError(f"Book with id {book_id} not found")
+
+    def delete(self, entity_id: int, model: Type[db.Model]) -> None:
+        entity = db.session.get(model, entity_id)
+        if entity:
+            try:
+                db.session.delete(entity)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
+        else:
+            raise ValueError(f"{model.__name__} with id {entity_id} not found")
 
