@@ -68,3 +68,16 @@ class DataManager():
         if user:
             return user.list_of_communities_of_user
         return []
+
+    def update_book(self, book_id: int, new_title: str) -> None:
+        book = db.session.get(Book, book_id)
+        if book:
+            try:
+                book.title = new_title
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
+        else:
+            raise ValueError(f"Book with id {book_id} not found")
+
