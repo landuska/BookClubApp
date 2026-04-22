@@ -1,4 +1,4 @@
-from models import User, Book, Author, Community, db
+from models import User, Book, Author, Community, UserBooks, UserCommunities, db
 from sqlalchemy.exc import IntegrityError
 from datetime import date
 from typing import Type
@@ -28,7 +28,7 @@ class DataManager():
             db.session.rollback()
             raise
 
-    def add_author(self, name: str, birth_date: date, death_date=None) -> None:
+    def add_author(self, name: str, birth_date: date, death_date: date = None) -> None:
         existing_author = db.session.query(Author).filter_by(author_name=name).first()
         if existing_author:
             raise ValueError(f"Author with name '{name}' already exists.")
@@ -52,6 +52,18 @@ class DataManager():
             db.session.rollback()
             raise
 
+    def add_user_to_community(self, user_id: int, community_id: int) -> None:
+        try:
+            new_user_community_pair = UserCommunities(user_id=user_id, community_id=community_id)
+            db.session.add(new_user_community_pair)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            raise ValueError(f"User is already added to community {community_id}.")
+        except Exception:
+            db.session.rollback()
+            raise
+
     def get_entity(self, model: Type[db.Model]):
         return db.session.query(model).all()
 
@@ -67,17 +79,24 @@ class DataManager():
             return user.list_of_communities_of_user
         return []
 
-    def update_book(self, book_id: int, new_title: str) -> None:
-        book = db.session.get(Book, book_id)
+    def update_user_book_status(self,
+                                user_id: int,
+                                book_id: int,
+                                new_status: str = None,
+                                new_rating: float = None) -> None:
+        book = db.session.get(UserBooks, (user_id, book_id))
         if book:
             try:
-                book.title = new_title
+                if new_status is not None:
+                    book.status = new_status
+                if new_rating is not None:
+                    book.rating = new_rating
                 db.session.commit()
             except Exception:
                 db.session.rollback()
                 raise
         else:
-            raise ValueError(f"Book with id {book_id} not found")
+            raise ValueError(f"User {user_id} and Book {book_id} are not found.")
 
     def delete(self, entity_id: int, model: Type[db.Model]) -> None:
         entity = db.session.get(model, entity_id)
@@ -90,4 +109,16 @@ class DataManager():
                 raise
         else:
             raise ValueError(f"{model.__name__} with id {entity_id} not found")
+
+    def remove_user_from_community(self, user_id: int, community_id: int) -> None:
+        user_community_pair = db.session.get(UserCommunities, (user_id, community_id))
+        if user_community_pair:
+            try:
+                db.session.delete(user_community_pair)
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
+        else:
+            raise ValueError("User is not a member of this community.")
 
