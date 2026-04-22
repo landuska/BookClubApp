@@ -52,17 +52,14 @@ class DataManager():
             db.session.rollback()
             raise
 
-    def get_users(self) -> list[User]:
-        return db.session.query(User).all()
+    def get_entity(self, model: Type[db.Model]):
+        return db.session.query(model).all()
 
     def get_books_by_user(self, user_id: int):
         user = db.session.get(User, user_id)
         if user:
             return user.list_of_reading_books
         return []
-
-    def get_authors(self) -> list[Author]:
-        return db.session.query(Author).all()
 
     def get_communities_by_user(self, user_id: int):
         user = db.session.get(User, user_id)
