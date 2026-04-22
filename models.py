@@ -9,52 +9,82 @@ db = SQLAlchemy()
 
 class User(db.Model):
     __tablename__ = 'users'
+
     user_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     password: Mapped[str] = mapped_column(String, nullable=False)
+
     list_of_reading_books: Mapped[List["UserBooks"]] = relationship(back_populates="user_reader")
     list_of_communities_of_user: Mapped[List["UserCommunities"]] = relationship(back_populates="user_member")
+
+    def __repr__(self):
+        return f"User (id={self.user_id}, name={self.name})"
 
 
 class Book(db.Model):
     __tablename__ = 'books'
+
     book_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     title: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey('authors.author_id', ondelete='CASCADE'), nullable=False)
     cover_url: Mapped[str] = mapped_column(String, nullable=True)
+
     list_of_readers: Mapped[List["UserBooks"]] = relationship(back_populates="reading_book")
     author_of_book: Mapped["Author"] = relationship(back_populates="books")
+
+    def __repr__(self):
+        return f"Book (id={self.book_id}, title={self.title})"
 
 
 class UserBooks(db.Model):
     __tablename__ = 'user_books'
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
     book_id: Mapped[int] = mapped_column(Integer, ForeignKey('books.book_id', ondelete='CASCADE'), primary_key=True)
     status: Mapped[str] = mapped_column(String, nullable=True)
     rating: Mapped[float] = mapped_column(Float, nullable=True)
+
     user_reader: Mapped["User"] = relationship(back_populates="list_of_reading_books")
     reading_book: Mapped["Book"] = relationship(back_populates="list_of_readers")
+
+    def __repr__(self):
+        return f"UserBooks (user_id={self.user_id}, book_id={self.book_id})"
 
 
 class Author(db.Model):
     __tablename__ = 'authors'
+
     author_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     author_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     birth_date: Mapped[date] = mapped_column(Date, nullable=False)
     death_date: Mapped[date] = mapped_column(Date, nullable=True)
+
     books: Mapped[List["Book"]] = relationship(back_populates="author_of_book")
+
+    def __repr__(self):
+        return f"Author (id={self.author_id}, name={self.author_name})"
 
 
 class Community(db.Model):
     __tablename__ = 'communities'
+
     community_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     community_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    list_of_members: Mapped[List["UserCommunities"]] = relationship(back_populates="communities_of_user")
+
+    list_of_members: Mapped[List["UserCommunities"]] = relationship(back_populates="user_community")
+
+    def __repr__(self):
+        return f"Community (id={self.community_id}, name={self.community_name})"
 
 
 class UserCommunities(db.Model):
     __tablename__ = 'user_communities'
+
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.user_id', ondelete='CASCADE'), primary_key=True)
     community_id: Mapped[int] = mapped_column(Integer, ForeignKey('communities.community_id', ondelete='CASCADE'), primary_key=True)
+
     user_member: Mapped["User"] = relationship(back_populates="list_of_communities_of_user")
-    communities_of_user: Mapped["Community"] = relationship(back_populates="list_of_members")
+    user_community: Mapped["Community"] = relationship(back_populates="list_of_members")
+
+    def __repr__(self):
+        return f"UserCommunities (user_id={self.user_id}, community_id={self.community_id})"
