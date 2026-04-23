@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Register | BookClub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height: 80vh; padding: 2rem 0;">
+        <div class="col-md-5">
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">Create Account</h2>
+                        <p class="text-muted">Start your journey with us</p>
+                    </div>
+
+                    <form action="{{ url_for('register') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="username" class="form-label small fw-bold text-uppercase">Username</label>
+                            <input type="text" name="username" id="username"
+                                   class="form-control form-control-lg bg-light border-0" 
+                                   placeholder="Max Muster" required style="font-size: 0.9rem;">
+                        </div>
+
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label small fw-bold text-uppercase">Password</label>
+                            <input type="password" name="password" id="password" 
+                                   class="form-control form-control-lg bg-light border-0" 
+                                   placeholder="••••••••" required style="font-size: 0.9rem;">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3 shadow-sm" 
+                                style="border-radius: 10px; font-weight: 600;">
+                            Create Account
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p class="text-muted small">
+                            Already a member? <a href="{{ url_for('index') }}" class="text-decoration-none fw-bold">Login</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

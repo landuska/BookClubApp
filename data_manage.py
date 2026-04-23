@@ -9,7 +9,7 @@ class DataManager():
     def add_user(self, name: str, password: str) -> None:
         existing_user = db.session.query(User).filter_by(name=name).first()
         if existing_user:
-            raise ValueError(f"User with name '{name}' already exists.")
+            raise ValueError(f"User with username '{name}' already exists.")
         try:
             new_user = User(name=name, password=password)
             db.session.add(new_user)
@@ -17,6 +17,15 @@ class DataManager():
         except Exception:
             db.session.rollback()
             raise
+
+    def user_authorisation(self, name: str, password: str) -> None:
+        user = db.session.query(User).filter_by(name=name, password=password).first()
+
+        if not user:
+            raise ValueError(f"Invalid username or password, please, try again.")
+
+        return user
+
 
     def add_book(self, book: Book) -> None:
         try:

@@ -10,7 +10,7 @@
                 We're experiencing an internal server problem.<br>Please try again later or contact the administrator.
             </p>
             <div class="d-flex justify-content-center gap-2">
-                <a href="/" class="btn btn-outline-dark px-4 py-2">Home</a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-dark px-4 py-2">Home</a>
                 <button onclick="location.reload()" class="btn btn-primary px-4 py-2">Try Again</button>
             </div>
         </div>
