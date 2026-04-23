@@ -15,5 +15,16 @@ with app.app_context():
 def index()-> str:
     return render_template('index.html')
 
+@app.errorhandler(404)
+def page_not_found(error):
+    """Custom error handler for 404 (Page Not Found) errors."""
+    return render_template("404.html"), 404
+
+
+@app.errorhandler(500)
+def server_error(error):
+    """Custom error handler for 500 (Internal Server Error) errors."""
+    return render_template("500.html"), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
