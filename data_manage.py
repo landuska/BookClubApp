@@ -3,7 +3,6 @@ from sqlalchemy.exc import IntegrityError
 from datetime import date
 from typing import Type
 
-
 class DataManager():
 
     def add_user(self, name: str, password: str) -> None:
@@ -11,20 +10,22 @@ class DataManager():
         if existing_user:
             raise ValueError(f"User with username '{name}' already exists.")
         try:
-            new_user = User(name=name, password=password)
+            new_user = User(name=name)
+            new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
         except Exception:
             db.session.rollback()
             raise
 
+
     def user_authorisation(self, name: str, password: str) -> None:
-        user = db.session.query(User).filter_by(name=name, password=password).first()
+        user = db.session.query(User).filter_by(name=name).first()
 
-        if not user:
-            raise ValueError(f"Invalid username or password, please, try again.")
+        if user and user.check_password(password):
+            return user
 
-        return user
+        raise ValueError(f"Invalid username or password, please, try again.")
 
 
     def add_book(self, book: Book) -> None:

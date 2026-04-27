@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, redirect, session, url_for, flash
-from data_manage import DataManager
-from models import *
+from flask import Flask, render_template, request, redirect,  url_for, flash
+from flask_login import LoginManager, login_user, logout_user, login_required
 from sqlalchemy.exc import SQLAlchemyError
+from models import *
+from data_manage import DataManager
 
 app = Flask(__name__)
 
@@ -13,11 +14,19 @@ with app.app_context():
     db.create_all()
 
 app.secret_key = 'flashkey'
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 data_manager = DataManager()
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
 
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
+
 
 @app.route('/', methods=['POST'])
 def login():
@@ -26,19 +35,27 @@ def login():
 
     try:
         user = data_manager.user_authorisation(name=username, password=password)
-        session['user_id'] = user.user_id
-        session['username'] = user.name
-
-        flash(f"Welcome back, {user.name}!")
-        return redirect(url_for('user_page', username=user.name))
+        if user:
+            login_user(user)
+            flash(f"Welcome back, {user.name}!")
+            return redirect(url_for('user_page', username=user.name))
 
     except ValueError as e:
         flash(str(e))
         return redirect(url_for('index'))
 
 @app.route('/user/<username>')
+@login_required
 def user_page(username):
     return render_template('user_page.html', username=username)
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -48,7 +65,7 @@ def register():
 
         if not username or not password:
             flash("Please fill in all fields")
-            return redirect(url_for('register'))
+            return render_template('register.html')
 
         try:
             data_manager.add_user(name=username, password=password)
@@ -64,7 +81,6 @@ def register():
         except Exception:
             flash("Some error occurred. Please try again.")
 
-        return render_template('register.html')
 
     if request.method == 'GET':
         return render_template('register.html')
