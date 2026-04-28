@@ -65,7 +65,7 @@ class Author(db.Model):
 
     author_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     author_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
-    birth_date: Mapped[date] = mapped_column(Date, nullable=False)
+    birth_date: Mapped[date] = mapped_column(Date, nullable=True)
     death_date: Mapped[date] = mapped_column(Date, nullable=True)
 
     books: Mapped[List["Book"]] = relationship(back_populates="author_of_book")

@@ -27,4 +27,4 @@ def get_book_info(title: str) -> tuple | None:
         return None
 
 
-print(get_book_info("harry potter"))
+print(get_book_info("The Vegetarian"))

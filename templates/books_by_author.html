@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Books by {{ author.author_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-5 text-center">
+        <h2 class="fw-bold mb-1">{{ author.author_name }}</h2>
+        <p class="text-muted">
+            {% if author.birth_date %}
+                {{ author.birth_date.strftime('%Y') }} - {{ author.death_date.strftime('%Y') if author.death_date else 'Present' }}
+            {% else %}
+                Author's bibliography
+            {% endif %}
+        </p>
+        <hr class="mx-auto" style="width: 50px; height: 3px; background-color: #0d6efd; border: none; opacity: 1;">
+    </div>
+
+    <div class="row">
+        {% if books %}
+            {% for book in books %}
+            <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
+                <div class="card border-0 shadow-sm h-100" style="border-radius: 12px; overflow: hidden;">
+                    <div style="height: 180px; background-color: #f0f0f0;">
+                        {% if book.cover_url %}
+                            <img src="{{ book.cover_url }}" 
+                                 class="card-img-top" 
+                                 alt="{{ book.title }}"
+                                 style="width: 100%; height: 100%; object-fit: contain; padding: 5px;">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                                <small>No Cover</small>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="card-body p-2 d-flex flex-column text-center">
+                        <h6 class="fw-bold mb-2 text-truncate" style="font-size: 0.9rem;" title="{{ book.title }}">
+                            {{ book.title }}
+                        </h6>
+                        <div class="mt-auto">
+    {% if current_user.is_authenticated %}
+        <form action="{{ url_for('add_book', username=current_user.name) }}" method="POST">
+            <input type="hidden" name="title" value="{{ book.title }}">
+            <button type="submit" class="btn btn-sm btn-primary w-100" style="font-size: 0.7rem;">
+                + Add to my books
+            </button>
+        </form>
+    {% else %}
+        <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary w-100" style="font-size: 0.7rem;">
+            Login to add
+        </a>
+    {% endif %}
+</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">We don't have any books by this author yet.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

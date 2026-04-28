@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Book{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0" style="border-radius: 15px;">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4 text-center">Find a Book</h2>
+
+                    {% with messages = get_flashed_messages() %}
+                      {% if messages %}
+                        {% for message in messages %}
+                          <div class="alert alert-info border-0 shadow-sm" style="border-radius: 10px;">
+                              {{ message }}
+                          </div>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('add_book', username=current_user.name) }}" method="POST">
+                        <div class="mb-4">
+                            <label class="form-label text-muted fw-semibold">Book Title</label>
+                            <input type="text" name="title" class="form-control form-control-lg"
+                                   placeholder="e.g. The Great Gatsby" required style="border-radius: 10px;">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg shadow-sm" style="border-radius: 10px;">
+                                Search & Add to Library
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="text-center mt-3">
+                <a href="{{ url_for('my_books', username=current_user.name) }}" class="text-decoration-none text-muted small">← Back to My Library</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -33,12 +33,13 @@ class DataManager():
             db.session.add(book)
             db.session.commit()
         except IntegrityError:
+            db.session.rollback()
             raise ValueError(f"Book {book} was already added to the user's library.")
         except Exception:
             db.session.rollback()
             raise
 
-    def add_author(self, name: str, birth_date: date, death_date: date = None) -> None:
+    def add_author(self, name: str, birth_date: date = None, death_date: date = None) -> None:
         existing_author = db.session.query(Author).filter_by(author_name=name).first()
         if existing_author:
             raise ValueError(f"Author with name '{name}' already exists.")
@@ -62,6 +63,29 @@ class DataManager():
             db.session.rollback()
             raise
 
+
+    def get_entity(self, search_value: str, field_name: str, model: Type[db.Model]):
+        return db.session.query(model).filter(getattr(model, field_name) == search_value).first()
+
+
+    def add_book_to_user(self, user_id: int, book_id: int) -> None:
+        existing_book_by_user = db.session.query(UserBooks).filter_by(user_id=user_id,book_id=book_id).first()
+
+        if existing_book_by_user:
+            raise ValueError(f"This book is already in your library.")
+
+        try:
+            new_book_by_user = UserBooks(
+                user_id=user_id,
+                book_id=book_id
+            )
+            db.session.add(new_book_by_user)
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            raise
+
+
     def add_user_to_community(self, user_id: int, community_id: int) -> None:
         try:
             new_user_community_pair = UserCommunities(user_id=user_id, community_id=community_id)
@@ -74,7 +98,7 @@ class DataManager():
             db.session.rollback()
             raise
 
-    def get_entity(self, model: Type[db.Model]):
+    def get_entities(self, model: Type[db.Model]):
         return db.session.query(model).all()
 
     def get_books_by_user(self, user_id: int):
@@ -83,11 +107,28 @@ class DataManager():
             return user.list_of_reading_books
         return []
 
+    def get_authors_by_user(self, user_id: int):
+        user_books = db.session.query(UserBooks).filter_by(user_id=user_id).all()
+        if user_books:
+            authors = set()
+            for pair in user_books:
+                if pair.reading_book and pair.reading_book.author_of_book:
+                    authors.add(pair.reading_book.author_of_book)
+            return list(authors)
+        return []
+
+    def get_books_by_author(self, author_id: int):
+        author = db.session.get(Author, author_id)
+        if author:
+            return author.books
+        return []
+
     def get_communities_by_user(self, user_id: int):
         user = db.session.get(User, user_id)
         if user:
             return user.list_of_communities_of_user
         return []
+
 
     def update_user_book_status(self,
                                 user_id: int,
