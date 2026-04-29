@@ -4,33 +4,78 @@
 
 {% block content %}
 <div class="container py-5">
-    <h2 class="fw-bold mb-4">My authors</h2>
+    <div class="row mb-4">
+        <div class="col-12">
+            <a href="{{ url_for('user_page', username=current_user.name) }}" class="btn btn-link text-decoration-none text-muted p-0">
+                &larr; Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h1 class="fw-bold display-5 mb-1">My Authors</h1>
+            <p class="text-muted">The writers behind your favorite stories.</p>
+        </div>
+    </div>
 
     <div class="row">
         {% if authors %}
             {% for author in authors %}
-            <div class="col-md-4 col-lg-3 mb-4">
-                <div class="card border-0 shadow-sm text-center p-3" style="border-radius: 15px;">
-                    <div class="mx-auto mb-3 bg-light rounded-circle d-flex align-items-center justify-content-center" 
-                         style="width: 80px; height: 80px;">
-                        <i class="bi bi-person-fill text-primary" style="font-size: 2rem;"></i>
-                    </div>
-                    <h5 class="fw-bold">{{ author.author_name }}</h5>
-                    <p class="text-muted small">{{ author.books|length }} books in system</p>
-                    
-                    <a href="{{ url_for('books_by_author', author_id=author.author_id) }}" 
-                       class="btn btn-sm btn-outline-primary w-100 mt-2">
-                        View my books by him
-                    </a>
-                </div>
+<div class="col-md-4 col-lg-3 mb-4">
+    <div class="card border-0 shadow-sm h-100 transition-card" style="border-radius: 20px; overflow: hidden;">
+        <div style="height: 5px; background: linear-gradient(90deg, #6610f2, #0d6efd);"></div>
+
+        <div class="card-body text-center p-4">
+            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center text-primary shadow-sm mb-3"
+                 style="width: 64px; height: 64px; font-size: 1.5rem; font-weight: 800; border: 2px solid #fff;">
+                {{ author.author_name[0] | upper }}
             </div>
+
+            <h5 class="fw-bold mb-1 text-truncate" title="{{ author.author_name }}">
+                {{ author.author_name }}
+            </h5>
+
+            <p class="text-muted small mb-0" style="font-size: 0.8rem;">
+                {{ author.birth_date.strftime('%Y') if author.birth_date else '???' }}
+                -
+                {{ author.death_date.strftime('%Y') if author.death_date else 'Present' }}
+            </p>
+
+            <hr class="my-3" style="opacity: 0.1;">
+
+            <div class="d-grid">
+                <a href="{{ url_for('books_by_author', author_id=author.author_id) }}"
+                   class="btn btn-sm btn-outline-primary fw-bold py-2"
+                   style="border-radius: 12px; font-size: 0.75rem;">
+                    View Books
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
             {% endfor %}
         {% else %}
-            <div class="col-12 text-center py-5">
-                <p class="text-muted">You haven't added any books yet, so you have no favorite authors.</p>
-                <a href="{{ url_for('all_books') }}" class="btn btn-primary">Browse Catalog</a>
+            <div class="col-12">
+                <div class="bg-light border-0 py-5 px-4 text-center" style="border-radius: 25px; border: 2px dashed #dee2e6 !important;">
+                    <div class="display-1 mb-3 text-muted" style="opacity: 0.3;">✍️</div>
+                    <h3 class="fw-bold">No authors yet</h3>
+                    <p class="text-muted mb-4">Start adding books to see your favorite authors here.</p>
+                    <a href="{{ url_for('all_books') }}" class="btn btn-success px-4">Browse Catalog</a>
+                </div>
             </div>
         {% endif %}
     </div>
 </div>
+
+<style>
+    .transition-card {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .transition-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+</style>
 {% endblock %}
