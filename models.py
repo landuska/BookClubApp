@@ -16,7 +16,8 @@ class User(db.Model,UserMixin):
     name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
 
-    list_of_reading_books: Mapped[List["UserBooks"]] = relationship(back_populates="user_reader")
+    list_of_reading_books: Mapped[List["UserBooks"]] = relationship(back_populates="user_reader", cascade="all, delete",
+        passive_deletes=True)
     list_of_communities_of_user: Mapped[List["UserCommunities"]] = relationship(back_populates="user_member")
 
     def set_password(self, password):

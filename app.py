@@ -19,22 +19,28 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 data_manager = DataManager()
 
+
 # ***********************************************
 # ******** THE USER IS NOT LOGGED IN *********
 # ***********************************************
+
 
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
+
 # ***************** BOOKS ****************
+
 
 @app.route('/books', methods=['GET'])
 def all_books():
     books = data_manager.get_entities(Book)
     return render_template('books.html', books=books)
 
+
 # *************** AUTHORS *************
+
 
 @app.route('/authors', methods=['GET'])
 def all_authors():
@@ -44,7 +50,7 @@ def all_authors():
 
 @app.route('/author/<int:author_id>', methods=['GET'])
 def books_by_author(author_id):
-    author = data_manager.get_entity(author_id, "author_id", Author)
+    author = data_manager.get_entity_by_multiple_fields(Author, author_id=author_id, )
     if not author:
         flash("Author not found")
         return redirect(url_for('authors'))
@@ -54,6 +60,7 @@ def books_by_author(author_id):
 
 
 # *************** CLUBS ****************
+
 
 @app.route('/communities', methods=['GET'])
 def all_communities():
@@ -92,8 +99,8 @@ def register():
         except SQLAlchemyError as e:
             flash(f"Database error: {str(e)}")
 
-        except Exception:
-            flash("Some error occurred. Please try again.")
+        except Exception as e:
+            flash(f"Some error occurred. Please try again: {str(e)}")
 
 
     if request.method == 'GET':
@@ -109,8 +116,8 @@ def login():
         user = data_manager.user_authorisation(name=username, password=password)
         if user:
             login_user(user)
-            flash(f"Welcome back, {user.name}!")
-            return redirect(url_for('user_page', username=user.name))
+            flash(f"Welcome back, {current_user.name}!")
+            return redirect(url_for('user_page', username=current_user.name))
 
     except ValueError as e:
         flash(str(e))
@@ -129,13 +136,40 @@ def logout(username):
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/user/<username>/delete', methods=['POST'])
+@login_required
+def delete_user(username):
+    try:
+        user = data_manager.get_entity_by_multiple_fields(
+            User,
+            id=current_user.id
+        )
+
+        if not user:
+            flash("Account not found.")
+            return redirect(url_for('user_page', username=current_user.name))
+
+        data_manager.delete(user)
+        flash(f"Your account was deleted successfully")
+
+    except ValueError as e:
+        flash(str(e))
+
+    except SQLAlchemyError as e:
+        flash(f"Database error: {str(e)}")
+
+    except Exception as e:
+        flash(f"Some error occurred. Please try again: {str(e)}")
+
+    return redirect(url_for('index'))
+
 
 # *************************************************************
 # ************* THE USER IS LOGGED IN ************************+
 # *************************************************************
 
-
 # ************* BOOKS **************************
+
 
 @app.route('/user/<username>/my_books', methods=['GET'])
 @login_required
@@ -163,16 +197,18 @@ def add_book(username):
         name_of_author = authors[0] if authors else "Unknown Author"
 
         try:
-            author_obj = data_manager.get_entity(name_of_author, "author_name", Author)
+            author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
 
             if not author_obj:
                 data_manager.add_author(name=name_of_author)
                 flash(f"Author '{name_of_author}' was added successfully")
 
+                author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
+
             if author_obj is None:
                 raise ValueError(f"Could not retrieve author '{name_of_author}' from database.")
 
-            book_obj = data_manager.get_entity(api_title, "title", Book)
+            book_obj = data_manager.get_entity_by_multiple_fields(Book, title=api_title)
             if not book_obj:
                 new_book = Book(
                     title=api_title,
@@ -181,6 +217,7 @@ def add_book(username):
                 )
 
                 data_manager.add_book(new_book)
+                book_obj = data_manager.get_entity_by_multiple_fields(Book, title=api_title)
 
             user_book = UserBooks(
                 user_id=current_user.id,
@@ -203,6 +240,35 @@ def add_book(username):
 
     if request.method == 'GET':
         return render_template('add_book.html', username=current_user.name)
+
+
+@app.route('/my_books/delete/<int:book_id>', methods=['POST'])
+@login_required
+def delete_book(book_id: int):
+    try:
+        book = data_manager.get_entity_by_multiple_fields(
+            UserBooks,
+            user_id=current_user.id,
+            book_id=book_id
+        )
+
+        if not book:
+            flash("Book not found in your collection.")
+            return redirect(url_for('my_books', username=current_user.name))
+
+        data_manager.delete(book)
+        flash(f"Book '{book.reading_book.title}' was deleted successfully")
+
+    except ValueError as e:
+        flash(str(e))
+
+    except SQLAlchemyError as e:
+        flash(f"Database error: {str(e)}")
+
+    except Exception as e:
+        flash(f"Some error occurred. Please try again: {str(e)}")
+
+    return redirect(url_for('my_books', username=current_user.name))
 
 
 # ********************* AUTHORS ************************
