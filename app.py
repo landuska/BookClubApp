@@ -319,6 +319,39 @@ def my_communities(username):
     return render_template('my_communities.html', communities=user_communities)
 
 
+@app.route('/communities/create', methods=['GET', 'POST'])
+@login_required
+def create_community():
+    if request.method == 'POST':
+        input_name = request.form.get('name')
+        if not input_name:
+            flash("Please enter a name")
+            return redirect(url_for('create_community'))
+
+        try:
+            data_manager.create_community(input_name)
+            flash(f"Community '{input_name}' was created successfully")
+
+            community_obj = data_manager.get_entity_by_multiple_fields(Community, community_name=input_name)
+
+            data_manager.add_user_to_community(user_id=current_user.id, community_id=community_obj.community_id)
+            flash(f"User was added to community successfully")
+            return redirect(url_for('my_communities', username=current_user.name))
+
+        except ValueError as e:
+            flash(str(e))
+
+        except SQLAlchemyError as e:
+            flash(f"Database error: {str(e)}")
+
+        except Exception as e:
+            flash(f"Some error occurred. Please try again: {str(e)}")
+
+        return redirect(url_for('create_community'))
+
+    if request.method == 'GET':
+        return render_template('create_community.html')
+
 # *********************************************
 # ************ ERRORS *************************
 # **********************************************

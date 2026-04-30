@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Create Community{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-6 mx-auto">
+            <a href="{{ url_for('all_communities') }}" class="btn btn-link text-decoration-none text-muted p-0">
+                &larr; Back to Communities
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm" style="border-radius: 24px; overflow: hidden;">
+                <div class="p-4 bg-primary text-white text-center">
+                    <div class="display-6 mb-2">🤝</div>
+                    <h3 class="fw-bold mb-0">New Book Club</h3>
+                    <p class="small opacity-75 mb-0">Connect with other readers</p>
+                </div>
+
+                <div class="card-body p-4 p-lg-5">
+                    <form action="{{ url_for('create_community') }}" method="POST">
+                        <div class="mb-4">
+                            <label for="name" class="form-label small fw-bold text-muted text-uppercase">Community Name</label>
+                            <input type="text" 
+                                   class="form-control form-control-lg border-0 bg-light" 
+                                   id="name" 
+                                   name="name" 
+                                   placeholder="e.g. Classic Literature Enthusiasts" 
+                                   required 
+                                   style="border-radius: 12px;">
+                            <div class="form-text mt-2 small text-muted">
+                                Choose a name that reflects the spirit of your club.
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-3 mb-4" style="border-radius: 12px; border-left: 4px solid #0d6efd;">
+                            <p class="mb-0 small text-dark">
+                                <strong>Note:</strong> As the founder, you will be automatically added to the club.
+                            </p>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm" style="border-radius: 15px;">
+                                Create Community
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-primary {
+        background: linear-gradient(135deg, #0d6efd, #0dcaf0) !important;
+    }
+    .form-control:focus {
+        background-color: #fff !important;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
+        border: 1px solid #0d6efd !important;
+    }
+</style>
+{% endblock %}

@@ -4,6 +4,7 @@
 
 {% block content %}
 <div class="container py-5">
+
     <div class="row mb-4">
         <div class="col-12">
             <a href="{{ url_for('user_page', username=current_user.name) }}" class="btn btn-link text-decoration-none text-muted p-0">
@@ -12,31 +13,36 @@
         </div>
     </div>
 
-    <div class="row align-items-center mb-5">
+
+    <div class="row align-items-end mb-5">
         <div class="col-md-8">
             <h1 class="fw-bold display-5 mb-1">My Communities</h1>
-            <p class="text-muted">Explore and manage your active book clubs.</p>
+            <p class="text-muted mb-0">Clubs you have joined or created.</p>
         </div>
-        <div class="col-md-4 text-md-end text-start mt-3 mt-md-0">
-            <button class="btn btn-primary px-4 py-2 shadow-sm fw-bold" style="border-radius: 12px;">
-                + Create New Club
-            </button>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <a href="{{ url_for('create_community') }}"
+               class="btn btn-primary d-inline-flex align-items-center shadow-sm fw-bold px-4 py-2"
+               style="border-radius: 12px; transition: all 0.2s;">
+               <i class="bi bi-plus-lg me-2"></i> Create Club
+            </a>
         </div>
     </div>
+
 
     <div class="row">
         {% if communities %}
             {% for community in communities %}
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card border-0 shadow-sm h-100 transition-card" style="border-radius: 20px; overflow: hidden;">
+
                     <div style="height: 6px; background: linear-gradient(90deg, #0d6efd, #6610f2);"></div>
 
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div class="bg-light rounded-3 p-3 text-primary" style="font-size: 1.5rem;">
+                            <div class="bg-light rounded-3 p-3 text-primary d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.2rem;">
                                 👥
                             </div>
-                            <span class="badge bg-light text-primary rounded-pill px-3 py-2">
+                            <span class="badge bg-light text-primary rounded-pill px-3 py-2" style="font-size: 0.75rem;">
                                 {{ community.list_of_users_in_community | length }} members
                             </span>
                         </div>
@@ -45,7 +51,7 @@
                         <p class="text-muted small mb-4">Sharing thoughts and reading goals together.</p>
 
                         <div class="d-grid">
-                            <a href="#" class="btn btn-outline-primary fw-bold" style="border-radius: 10px;">
+                            <a href="#" class="btn btn-outline-primary fw-bold py-2" style="border-radius: 10px;">
                                 Enter Club
                             </a>
                         </div>
@@ -54,12 +60,12 @@
             </div>
             {% endfor %}
         {% else %}
-            <div class="col-12">
-                <div class="bg-light border-0 py-5 px-4 text-center" style="border-radius: 25px; border: 2px dashed #dee2e6 !important;">
+            <div class="col-12 text-center py-5">
+                <div class="bg-light border-0 py-5 px-4 mx-auto" style="border-radius: 25px; border: 2px dashed #dee2e6 !important; max-width: 600px;">
                     <div class="display-1 mb-3 text-muted" style="opacity: 0.3;">📂</div>
                     <h3 class="fw-bold">No clubs found</h3>
                     <p class="text-muted mb-4">You haven't joined or created any clubs yet.</p>
-                    <a href="#" class="btn btn-primary px-4 py-2">Explore All Clubs</a>
+                    <a href="{{ url_for('all_communities') }}" class="btn btn-primary px-4 py-2 fw-bold" style="border-radius: 12px;">Explore All Clubs</a>
                 </div>
             </div>
         {% endif %}
