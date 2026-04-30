@@ -242,22 +242,50 @@ def add_book(username):
         return render_template('add_book.html', username=current_user.name)
 
 
+@app.route('/my_books/update/<int:book_id>', methods=['GET', 'POST'])
+@login_required
+def update_book_info(book_id):
+    if request.method == 'POST':
+        status = request.form.get('status')
+        rating = request.form.get('rating')
+        note = request.form.get('note')
+        try:
+            data_manager.update_user_book(current_user.id, book_id, status, rating, note)
+            flash("Book was updated successfully")
+            return redirect(url_for('my_books', username=current_user.name))
+
+        except ValueError as e:
+            flash(str(e))
+
+        except SQLAlchemyError as e:
+            flash(f"Database error: {str(e)}")
+
+        except Exception as e:
+            flash(f"Some error occurred. Please try again: {str(e)}")
+
+        return redirect(url_for('my_books', username=current_user.name))
+
+    if request.method == 'GET':
+        user_book = data_manager.get_entity_by_multiple_fields(UserBooks, user_id=current_user.id, book_id=book_id)
+        return render_template('book_info.html', book=user_book)
+
+
 @app.route('/my_books/delete/<int:book_id>', methods=['POST'])
 @login_required
 def delete_book(book_id: int):
     try:
-        book = data_manager.get_entity_by_multiple_fields(
+        user_book = data_manager.get_entity_by_multiple_fields(
             UserBooks,
             user_id=current_user.id,
             book_id=book_id
         )
 
-        if not book:
+        if not user_book:
             flash("Book not found in your collection.")
             return redirect(url_for('my_books', username=current_user.name))
 
-        data_manager.delete(book)
-        flash(f"Book '{book.reading_book.title}' was deleted successfully")
+        data_manager.delete(user_book)
+        flash(f"Book '{user_book.reading_book.title}' was deleted successfully")
 
     except ValueError as e:
         flash(str(e))

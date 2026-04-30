@@ -72,11 +72,12 @@ class DataManager():
         return []
 
 
-    def update_user_book_status(self,
+    def update_user_book(self,
                                 user_id: int,
                                 book_id: int,
                                 new_status: str = None,
-                                new_rating: float = None) -> None:
+                                new_rating: float = None,
+                                new_note: str = None) -> None:
         book = db.session.get(UserBooks, (user_id, book_id))
         if book:
             try:
@@ -84,12 +85,14 @@ class DataManager():
                     book.status = new_status
                 if new_rating is not None:
                     book.rating = new_rating
+                if new_note is not None:
+                    book.note = new_note
                 db.session.commit()
             except Exception:
                 db.session.rollback()
                 raise
         else:
-            raise ValueError(f"User {user_id} and Book {book_id} are not found.")
+            raise ValueError(f"User {user_id} or Book {book_id} is not found.")
 
 
 # *********************** AUTHOR ***************************
