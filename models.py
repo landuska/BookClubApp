@@ -34,7 +34,7 @@ class Book(db.Model):
     __tablename__ = 'books'
 
     book_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    title: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey('authors.author_id', ondelete='CASCADE'), nullable=False)
     cover_url: Mapped[str] = mapped_column(String, nullable=True)
 
@@ -80,6 +80,7 @@ class Community(db.Model):
 
     community_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     community_name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    about_community: Mapped[str] = mapped_column(String, nullable=True)
 
     list_of_members: Mapped[List["UserCommunities"]] = relationship(back_populates="user_community", cascade="all, delete",
         passive_deletes=True)

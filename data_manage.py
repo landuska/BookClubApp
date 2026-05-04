@@ -132,12 +132,12 @@ class DataManager():
 # *********************** COMMUNITY ***************************
 
 
-    def create_community(self, name: str) -> None:
+    def create_community(self, name: str, about: str = None) -> None:
         existing_community = db.session.query(Community).filter_by(community_name=name).first()
         if existing_community:
             raise ValueError(f"Community with name '{name}' already exists.")
         try:
-            new_community = Community(community_name=name)
+            new_community = Community(community_name=name, about_community=about)
             db.session.add(new_community)
             db.session.commit()
         except Exception:

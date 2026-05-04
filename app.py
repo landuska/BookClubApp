@@ -339,12 +339,14 @@ def my_communities(username):
 def create_community():
     if request.method == 'POST':
         input_name = request.form.get('name')
+        input_about_community = request.form.get('about')
+
         if not input_name:
             flash("Please enter a name")
             return redirect(url_for('create_community'))
 
         try:
-            data_manager.create_community(input_name)
+            data_manager.create_community(input_name, input_about_community)
             flash(f"Community '{input_name}' was created successfully")
 
             community_obj = data_manager.get_entity_by_multiple_fields(Community, community_name=input_name)
@@ -386,6 +388,18 @@ def join_community(community_id):
         flash(f"Some error occurred. Please try again: {str(e)}")
 
     return redirect(url_for('my_communities', username=current_user.name))
+
+@app.route('/members/<int:community_id>', methods=['GET'])
+@login_required
+def community_members(community_id):
+    community = data_manager.get_entity_by_id(Community, id=community_id)
+
+    is_member = any(member.user_id == current_user.id for member in community.list_of_members)
+    if not is_member:
+        flash("You must be a member to see this page.")
+        return redirect(url_for('community_info', community_id=community_id))
+
+    return render_template('community_members.html', community=community)
 
 
 @app.route('/communities/leave/<int:community_id>', methods=['POST'])
