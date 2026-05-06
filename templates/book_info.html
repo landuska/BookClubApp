@@ -11,18 +11,10 @@
         background-color: transparent !important;
     }
     {% endif %}
-    .edit-toggle {
-        display: none;
-    }
-    .input-field {
-        display: none;
-    }
-    .edit-toggle:checked + .display-area {
-        display: none;
-    }
-    .edit-toggle:checked + .display-area + .input-field {
-        display: block;
-    }
+    .edit-toggle { display: none; }
+    .input-field { display: none; }
+    .edit-toggle:checked + .display-area { display: none; }
+    .edit-toggle:checked + .display-area + .input-field { display: block; }
 
     .display-area {
         cursor: pointer;
@@ -30,9 +22,7 @@
         border-radius: 12px;
         transition: background 0.2s;
     }
-    .display-area:hover {
-        background-color: #f8f9fa;
-    }
+    .display-area:hover { background-color: #f8f9fa; }
 
     .notes-box {
         background-color: #fcfcfc;
@@ -44,39 +34,59 @@
 </style>
 
 <div class="container py-5">
+    <!-- Навигация -->
     <div class="mb-4">
         {% if is_owner %}
-        <a href="{{ url_for('user_books', username=current_user.name) }}" class="btn btn-link text-decoration-none text-muted p-0">
+        <a href="{{ url_for('user_books', username=current_user.name) }}"
+           class="btn btn-link text-decoration-none text-muted p-0">
             &larr; Back to My Library
         </a>
         {% else %}
         <a href="javascript:history.back()" class="btn btn-link text-decoration-none text-muted p-0">
-            &larr; Back to Members
+            &larr; Back
         </a>
         {% endif %}
     </div>
 
-    <form action="{{ url_for('update_book_info', book_id=book.book_id) if is_owner else '#' }}" method="POST">
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm text-center p-4" style="border-radius: 20px;">
-                    <div class="mb-3">
-                        {% if book.reading_book.cover_url %}
-                            <img src="{{ book.reading_book.cover_url }}" class="img-fluid rounded shadow" style="max-height: 350px;">
-                        {% else %}
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 220px;">📖</div>
-                        {% endif %}
-                    </div>
-                    <h4 class="fw-bold mb-1">{{ book.reading_book.title }}</h4>
-                    <p class="text-primary">{{ book.reading_book.author_of_book.author_name }}</p>
-                </div>
-            </div>
+    {% if book %}
+    <div class="row g-4">
 
-            <div class="col-lg-8">
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm text-center p-4" style="border-radius: 20px;">
+                <div class="mb-3">
+                    {% if book.reading_book.cover_url %}
+                    <img src="{{ book.reading_book.cover_url }}" class="img-fluid rounded shadow" style="max-height: 350px;">
+                    {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 220px;">📖</div>
+                    {% endif %}
+                </div>
+                <h4 class="fw-bold mb-1">{{ book.reading_book.title }}</h4>
+                <p class="text-primary">{{ book.reading_book.author_of_book.author_name }}</p>
+
+                {% if not is_owner %}
+                <div class="border-top pt-3 mt-3">
+
+                    <form action="{{ url_for('add_book', username=current_user.name) }}" method="POST">
+                        <input type="hidden" name="title" value="{{ book.reading_book.title }}">
+                        <button type="submit" class="btn btn-outline-primary w-100 fw-bold" style="border-radius: 12px;">
+                            + Add to My Library
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+
+        <div class="col-lg-8">
+
+            {% if is_owner %}
+            <form action="{{ url_for('update_book_info', book_id=book.book_id) }}" method="POST">
+            {% endif %}
                 <div class="card border-0 shadow-sm p-4 p-lg-5" style="border-radius: 20px;">
 
                     <div class="mb-4">
-                        <label class="text-muted small fw-bold text-uppercase">Status (click to change)</label>
+                        <label class="text-muted small fw-bold text-uppercase">Status</label>
                         <div class="edit-wrapper">
                             <input type="checkbox" id="edit-status" class="edit-toggle">
                             <label for="edit-status" class="display-area d-block">
@@ -95,11 +105,11 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="text-muted small fw-bold text-uppercase">Rating (click to change)</label>
+                        <label class="text-muted small fw-bold text-uppercase">Rating</label>
                         <div class="edit-wrapper">
                             <input type="checkbox" id="edit-rating" class="edit-toggle">
                             <label for="edit-rating" class="display-area d-block">
-                                <span class="fs-4 fw-bold text-warning">⭐ {{ book.rating or '' }}</span>
+                                <span class="fs-4 fw-bold text-warning">⭐ {{ book.rating or 'No rating' }}</span>
                             </label>
                             {% if is_owner %}
                             <div class="input-field mt-2">
@@ -110,7 +120,7 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="text-muted small fw-bold text-uppercase">Notes {{ '(click to edit)' if is_owner }}</label>
+                        <label class="text-muted small fw-bold text-uppercase">Notes</label>
                         <div class="edit-wrapper">
                             <input type="checkbox" id="edit-note" class="edit-toggle">
                             <label for="edit-note" class="display-area d-block">
@@ -118,7 +128,7 @@
                                     {% if book.note and book.note.strip() %}
                                         {{ book.note }}
                                     {% else %}
-                                        <span class="text-muted">No notes yet. Click here to add your thoughts...</span>
+                                        <span class="text-muted">No notes yet.</span>
                                     {% endif %}
                                 </div>
                             </label>
@@ -129,6 +139,7 @@
                             {% endif %}
                         </div>
                     </div>
+
                     {% if is_owner %}
                     <div class="mt-4">
                         <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold" style="border-radius: 12px;">
@@ -137,8 +148,11 @@
                     </div>
                     {% endif %}
                 </div>
-            </div>
+            {% if is_owner %}
+            </form>
+            {% endif %}
         </div>
-    </form>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

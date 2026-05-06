@@ -149,17 +149,29 @@ class DataManager():
 # *********************** COMMUNITY ***************************
 
 
-    def create_community(self, name: str, about: str = None) -> None:
+    def create_community(self, name: str, description: str = None) -> None:
         existing_community = db.session.query(Community).filter_by(community_name=name).first()
         if existing_community:
             raise ValueError(f"Community with name '{name}' already exists.")
         try:
-            new_community = Community(community_name=name, about_community=about)
+            new_community = Community(community_name=name, about_community=description)
             db.session.add(new_community)
             db.session.commit()
         except Exception:
             db.session.rollback()
             raise
+
+
+    def update_community(self, community_id: int, name: str, description: str) -> None:
+        community = db.session.get(Community, community_id)
+        if community:
+            try:
+                community.community_name = name
+                community.about_community = description
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                raise
 
 
     def add_user_to_community(self, user_id: int, community_id: int) -> None:
@@ -206,8 +218,9 @@ class DataManager():
         return db.session.query(model).filter_by(**kwargs).first()
 
 
-    def get_entity_by_id(self, model: Type[db.Model], id: int):
-        return db.session.get(model, id)
+    def get_entity_by_id(self, model: Type[db.Model], ent_id: int):
+        return db.session.get(model, ent_id)
+
 
 
     def delete(self, entity) -> None:

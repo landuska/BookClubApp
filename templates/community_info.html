@@ -1,6 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .edit-toggle { display: none; }
+    .input-field { display: none; }
+    .edit-toggle:checked + .display-area { display: none; }
+    .edit-toggle:checked + .display-area + .input-field { display: block; }
+
+    .display-area {
+        cursor: pointer;
+        padding: 15px;
+        border-radius: 15px;
+        transition: background 0.2s;
+    }
+
+    {% if is_member %}
+    .display-area:hover { background-color: #f0f4f8; border: 1px dashed #0d6efd; }
+    {% else %}
+    .display-area { cursor: default; pointer-events: none; }
+    {% endif %}
+
+    .edit-wrapper { position: relative; }
+</style>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -8,70 +30,92 @@
                 &larr; Back to all clubs
             </a>
             <div class="card border-0 shadow-sm p-4 p-lg-5" style="border-radius: 25px;">
-                
-                <div class="text-center mb-4">
-                    <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
-                        👥
+                {% if is_member %}
+                <form action="{{ url_for('update_community', community_id=community.community_id) }}" method="POST">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                             style="width: 80px; height: 80px; font-size: 2rem;">
+                            👥
+                        </div>
+
+                        <div class="edit-wrapper">
+                            <input type="checkbox" id="edit-name" class="edit-toggle">
+                            <label for="edit-name" class="display-area d-inline-block">
+                                <h1 class="fw-bold mb-0">{{ community.community_name }}</h1>
+                                <small class="text-primary d-block">click to rename</small>
+                            </label>
+                            <div class="input-field mt-2 mx-auto" style="max-width: 400px;">
+                                <input type="text" name="name" class="form-control text-center fw-bold"
+                                       value="{{ community.community_name }}">
+                            </div>
+                        </div>
+                        <p class="text-muted">{{ members|length }} members</p>
                     </div>
-                    <h1 class="fw-bold">{{ community.community_name }}</h1>
-                    <p class="text-muted">{{ members|length }} members</p>
+
+                    <hr class="my-4" style="opacity: 0.1;">
+
+                    <div class="community-content">
+                        <h4 class="fw-bold mb-3 text-center">Community Space</h4>
+                        <div class="edit-wrapper mb-4">
+                            <label class="small fw-bold text-muted text-uppercase mb-2 d-block text-center">Description</label>
+                            <input type="checkbox" id="edit-desc" class="edit-toggle">
+                            <label for="edit-desc" class="display-area d-block bg-light rounded-4">
+                                <p class="text-muted mb-0 text-center">{{ community.about_community or 'No description
+                                    yet. Members, click to add one!' }}</p>
+                            </label>
+                            <div class="input-field mt-2">
+                                <textarea name="description" class="form-control" rows="5">{{ community.about_community }}</textarea>
+                            </div>
+                        </div>
+                        <div class="text-center mb-4">
+                            <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm"
+                                    style="border-radius: 12px;">
+                                Save Changes
+                            </button>
+                        </div>
+                </form>
+                <div class="list-group border-0 bg-light rounded-4 p-3 mb-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Member Tools:</span>
+                        <a href="{{ url_for('community_members', community_id=community.community_id) }}"
+                           class="btn btn-sm btn-outline-primary fw-bold">
+                            👥 View Members
+                        </a>
+                    </div>
                 </div>
 
-                <hr class="my-4" style="opacity: 0.1;">
-                        <div class="community-content">
-                            <h4 class="fw-bold mb-3">Welcome to the Club!</h4>
-                            <div class="bg-light p-4 rounded-4 mb-4">
-                                <h5>About</h5>
-                                <p class="text-muted">{{community.about_community}}</p>
-                                {% if current_user.is_authenticated %}
-                                     {% if is_member %}
-                                <div class="list-group border-0">
-                                    <div class="list-group-item bg-transparent border-0 px-0">
-<div class="mb-4 text-left">
-<a href="{{ url_for('community_members', community_id=community.community_id) }}"
-   class="btn btn-sm btn-outline-primary fw-bold"
-   style="border-radius: 8px;">
-    <i class="bi bi-people-fill me-1"></i>Active Members
-</a>
-</div>
-                                    </div>
-                                </div>
-                                 </div>
-                            <div class="mt-4 pt-4 border-top d-flex justify-content-between align-items-center">
+                <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center">
 
-    <form action="{{ url_for('leave_community', community_id=community.community_id) }}" method="POST">
-        <button class="btn btn-link text-muted p-0 text-decoration-none small" type="submit" onclick="return confirm('Leave this club?')">
-            Leave Community
-        </button>
-    </form>
+                    <form action="{{ url_for('leave_community', community_id=community.community_id) }}"
+                          method="POST">
+                        <button class="btn btn-link text-muted p-0 text-decoration-none small" type="submit"
+                                onclick="return confirm('Leave this club?')">
+                            Leave Community
+                        </button>
+                    </form>
 
-    <form action="{{ url_for('delete_community', community_id=community.community_id) }}" method="POST">
-        <button class="btn btn-outline-danger btn-sm px-3" type="submit"
-                onclick="return confirm('ARE YOU SURE? This will permanently delete the community and all its data!')"
-                style="border-radius: 10px;">
-            <i class="bi bi-trash3 me-1"></i> Delete Club
-        </button>
-    </form>
-</div>
-
-                        </div>
-                                    {% else %}
-                                        </div>
-                        <p class="text-muted mt-3">This community is private to members only.</p>
-                    </div>
-              <h4 class="fw-bold mb-3">Interested in joining?</h4>
-                            <p class="text-muted mb-4">Click below to become a member and start participating!</p>
-                            <form action="{{ url_for('join_community', community_id=community.community_id) }}" method="POST">
-                                <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow" style="border-radius: 15px;">
-                                    Join this Club
-                                </button>
-                            </form>
-                    {% endif %}
+                    <form action="{{ url_for('delete_community', community_id=community.community_id) }}"
+                          method="POST">
+                        <button class="btn btn-outline-danger btn-sm px-3" type="submit"
+                                onclick="return confirm('DESTROY CLUB?')">
+                            Delete Club
+                        </button>
+                    </form>
+                </div>
                 {% else %}
-                    <div class="text-center py-4">
-                        <div class="alert alert-info border-0 rounded-4">
-                            <i class="bi bi-info-circle me-2"></i>
-                            Please <strong><a href="{{ url_for('login') }}">login</a></strong> to see the discussions and join this club.
+                <div class="text-center py-3">
+                    {% if current_user.is_authenticated %}
+                    <form action="{{ url_for('join_community', community_id=community.community_id) }}"
+                          method="POST">
+                        <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow"
+                                style="border-radius: 15px;">
+                            Join to Edit & Participate
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Login to view all info</a>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
         </div>

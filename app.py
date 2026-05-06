@@ -48,9 +48,9 @@ def all_authors():
     return render_template('authors.html', authors=authors)
 
 
-@app.route('/author/<int:author_id>', methods=['GET'])
+@app.route('/authors/<int:author_id>', methods=['GET'])
 def books_by_author(author_id):
-    author = data_manager.get_entity_by_multiple_fields(Author, author_id=author_id, )
+    author = data_manager.get_entity_by_id(Author, author_id)
     if not author:
         flash("Author not found")
         return redirect(url_for('authors'))
@@ -101,7 +101,7 @@ def register():
 
         if not username or not password:
             flash("Please fill in all fields")
-            return render_template('register.html')
+            return redirect(url_for('register'))
 
         try:
             data_manager.add_user(name=username, password=password)
@@ -138,20 +138,26 @@ def login():
         flash(str(e))
         return redirect(url_for('index'))
 
+    except SQLAlchemyError as e:
+        flash(f"Database error: {str(e)}")
 
-@app.route('/user/<username>')
+    except Exception as e:
+        flash(f"Some error occurred. Please try again: {str(e)}")
+
+
+@app.route('/<username>')
 @login_required
 def user_page(username):
     return render_template('user_page.html', username=username)
 
 
-@app.route('/user/<username>/logout')
+@app.route('/<username>/logout')
 @login_required
 def logout(username):
     logout_user()
     return redirect(url_for('index'))
 
-@app.route('/user/<username>/delete', methods=['POST'])
+@app.route('/<username>/delete', methods=['POST'])
 @login_required
 def delete_user(username):
     try:
@@ -186,52 +192,51 @@ def delete_user(username):
 # ************* BOOKS **************************
 
 
-@app.route('/user/<username>/user_books', methods=['GET'])
+@app.route('/<username>/user_books', methods=['GET'])
 @login_required
 def user_books(username):
+    user = data_manager.get_entity_by_multiple_fields(User, name=username)
+
     status = request.args.get('status')
     rating = request.args.get('rating', type=float)
 
     all_user_books = data_manager.get_filtered_books(
-        user_id=current_user.id,
+        user_id=user.id,
         status=status,
         min_rating=rating
     )
-    return render_template('user_books.html', books=all_user_books,current_status=status,current_rating=rating)
+    is_owner = (current_user.id == user.id)
+    return render_template('user_books.html', user=user, books=all_user_books,current_status=status,current_rating=rating, is_owner=is_owner)
 
 
-@app.route('/user/<username>/add_book', methods=['GET', 'POST'])
+@app.route('/<username>/add_book', methods=['GET', 'POST'])
 @login_required
 def add_book(username):
     if request.method == 'POST':
-        input_title = request.form.get('title').strip()
+        input_title = request.form.get('title', '').strip()
+
         if not input_title:
-            flash("Please enter a title")
-            return redirect(url_for('add_book', username=current_user.name))
-
-        book_data = get_book_info(input_title)
-
-        if not book_data:
-            flash(f"Book {input_title} not found")
-            return redirect(url_for('add_book', username=current_user.name))
-
-        api_title, authors, cover_url = book_data
-        name_of_author = authors[0] if authors else "Unknown Author"
+            flash("No book title provided")
+            return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
         try:
-            author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
+            book_obj = data_manager.get_entity_by_multiple_fields(Book, title=input_title)
+            if not book_obj:
+                book_data = get_book_info(input_title)
 
-            if not author_obj:
-                data_manager.add_author(name=name_of_author)
-                flash(f"Author '{name_of_author}' was added successfully")
+                if not book_data:
+                    flash(f"Book {input_title} not found")
+                    return redirect(request.referrer or url_for('add_book', username=current_user.name))
+
+                api_title, authors, cover_url = book_data
+                name_of_author = authors[0] if authors else "Unknown Author"
 
                 author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
 
-            if author_obj is None:
-                raise ValueError(f"Could not retrieve author '{name_of_author}' from database.")
+                if not author_obj:
+                    data_manager.add_author(name=name_of_author)
+                    author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
 
-            book_obj = data_manager.get_entity_by_multiple_fields(Book, title=api_title)
-            if not book_obj:
                 new_book = Book(
                     title=api_title,
                     author_id=author_obj.author_id,
@@ -247,7 +252,7 @@ def add_book(username):
             )
 
             data_manager.add_book_to_user(user_book.user_id, user_book.book_id)
-            flash(f"Book '{api_title}' was added successfully")
+            flash(f"Book '{book_obj.title}' was added successfully")
 
         except ValueError as e:
             flash(str(e))
@@ -258,7 +263,7 @@ def add_book(username):
         except Exception as e:
             flash(f"Some error occurred. Please try again: {str(e)}")
 
-        return redirect(url_for('add_book', username=current_user.name))
+        return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
     if request.method == 'GET':
         return render_template('add_book.html', username=current_user.name)
@@ -268,12 +273,14 @@ def add_book(username):
 @login_required
 def user_book_info(user_id, book_id):
     user_book = data_manager.get_entity_by_multiple_fields(UserBooks, user_id=user_id, book_id=book_id)
-    is_owner = (current_user.id == user_id)
+    if user_book is None:
+        flash("Book not found in this library.")
 
+    is_owner = (current_user.id == user_id)
     return render_template('book_info.html', book=user_book, is_owner=is_owner)
 
 
-@app.route('/user_books/update/<int:book_id>', methods=['POST'])
+@app.route('/user_books/<int:book_id>/update', methods=['POST'])
 @login_required
 def update_book_info(book_id):
     status = request.form.get('status')
@@ -296,7 +303,7 @@ def update_book_info(book_id):
     return redirect(url_for('user_books', username=current_user.name))
 
 
-@app.route('/user_books/delete/<int:book_id>', methods=['POST'])
+@app.route('/user_books/<int:book_id>/delete', methods=['POST'])
 @login_required
 def delete_book(book_id: int):
     try:
@@ -328,7 +335,7 @@ def delete_book(book_id: int):
 # ********************* AUTHORS ************************
 
 
-@app.route('/user/<username>/user_authors', methods=['GET'])
+@app.route('/<username>/user_authors', methods=['GET'])
 @login_required
 def user_authors(username):
     authors = data_manager.get_authors_by_user(user_id=current_user.id)
@@ -338,26 +345,26 @@ def user_authors(username):
 # *******************+ COMMUNITIES *********************
 
 
-@app.route('/user/<username>/user_communities', methods=['GET'])
+@app.route('/<username>/communities', methods=['GET'])
 @login_required
 def user_communities(username):
     all_user_communities = data_manager.get_communities_by_user(user_id=current_user.id)
     return render_template('user_communities.html', communities=all_user_communities)
 
 
-@app.route('/user_communities/create', methods=['GET', 'POST'])
+@app.route('/communities/create', methods=['GET', 'POST'])
 @login_required
 def create_community():
     if request.method == 'POST':
         input_name = request.form.get('name')
-        input_about_community = request.form.get('about')
+        input_description = request.form.get('description')
 
         if not input_name:
             flash("Please enter a name")
             return redirect(url_for('create_community'))
 
         try:
-            data_manager.create_community(input_name, input_about_community)
+            data_manager.create_community(input_name, input_description)
             flash(f"Community '{input_name}' was created successfully")
 
             community_obj = data_manager.get_entity_by_multiple_fields(Community, community_name=input_name)
@@ -381,12 +388,15 @@ def create_community():
         return render_template('create_community.html')
 
 
-@app.route('/communities/join/<int:community_id>', methods=['POST'])
+@app.route('/communities/<int:community_id>/update', methods=['POST'])
 @login_required
-def join_community(community_id):
+def update_community(community_id):
+    new_name = request.form.get('name')
+    new_description = request.form.get('description')
+
     try:
-        data_manager.add_user_to_community(current_user.id, community_id)
-        flash(f"User joined to community successfully")
+        data_manager.update_community(community_id, new_name, new_description)
+        flash(f"Community '{new_name}' was updated successfully")
         return redirect(url_for('community_info', community_id=community_id))
 
     except ValueError as e:
@@ -400,10 +410,30 @@ def join_community(community_id):
 
     return redirect(url_for('user_communities', username=current_user.name))
 
-@app.route('/members/<int:community_id>', methods=['GET'])
+
+@app.route('/communities/<int:community_id>/join', methods=['POST'])
+@login_required
+def join_community(community_id):
+    try:
+        data_manager.add_user_to_community(current_user.id, community_id)
+        flash(f"User joined to community successfully")
+
+    except ValueError as e:
+        flash(str(e))
+
+    except SQLAlchemyError as e:
+        flash(f"Database error: {str(e)}")
+
+    except Exception as e:
+        flash(f"Some error occurred. Please try again: {str(e)}")
+
+    return redirect(url_for('user_communities', username=current_user.name))
+
+
+@app.route('/<int:community_id>/members', methods=['GET'])
 @login_required
 def community_members(community_id):
-    community = data_manager.get_entity_by_id(Community, id=community_id)
+    community = data_manager.get_entity_by_id(Community, ent_id=community_id)
 
     is_member = any(member.user_id == current_user.id for member in community.list_of_members)
     if not is_member:
@@ -413,7 +443,7 @@ def community_members(community_id):
     return render_template('community_members.html', community=community)
 
 
-@app.route('/communities/leave/<int:community_id>', methods=['POST'])
+@app.route('/communities/<int:community_id>/leave', methods=['POST'])
 @login_required
 def leave_community(community_id: int):
     try:
@@ -442,7 +472,7 @@ def leave_community(community_id: int):
     return redirect(url_for('user_communities', username=current_user.name))
 
 
-@app.route('/communities/delete/<int:community_id>', methods=['POST'])
+@app.route('/communities/<int:community_id>/delete', methods=['POST'])
 @login_required
 def delete_community(community_id: int):
     try:

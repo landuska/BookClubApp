@@ -24,24 +24,26 @@
                 <div class="card-body p-4 p-lg-5">
                     <form action="{{ url_for('create_community') }}" method="POST">
                         <div class="mb-4">
-                            <label for="name" class="form-label small fw-bold text-muted text-uppercase">Community Name</label>
-                            <input type="text" 
-                                   class="form-control form-control-lg border-0 bg-light" 
-                                   id="name" 
-                                   name="name" 
-                                   placeholder="e.g. Classic Literature Enthusiasts" 
-                                   required 
+                            <label for="name" class="form-label small fw-bold text-muted text-uppercase">Club
+                                Name</label>
+                            <input type="text"
+                                   class="form-control form-control-lg border-0 bg-light"
+                                   id="name"
+                                   name="name"
+                                   placeholder="e.g. Classic Literature Enthusiasts"
+                                   required
                                    style="border-radius: 12px;">
                         </div>
-<div class="mb-4">
-        <label for="about" class="form-label small fw-bold text-muted text-uppercase">About the Club</label>
-        <textarea class="form-control border-0 bg-light"
-                  id="about"
-                  name="about"
-                  rows="4"
-                  placeholder="Describe your club's goals, what you read, and who can join..."
-                  style="border-radius: 12px; resize: none;"></textarea>
-    </div>
+                        <div class="mb-4">
+                            <label for="about"
+                                   class="form-label small fw-bold text-muted text-uppercase">Description</label>
+                            <textarea class="form-control border-0 bg-light"
+                                      id="about"
+                                      name="about"
+                                      rows="4"
+                                      placeholder="Describe your club's goals, what you read, and who can join..."
+                                      style="border-radius: 12px; resize: none;"></textarea>
+                        </div>
                         <div class="bg-light p-3 mb-4" style="border-radius: 12px; border-left: 4px solid #0d6efd;">
                             <p class="mb-0 small text-dark">
                                 <strong>Note:</strong> As the founder, you will be automatically added to the club.
@@ -49,7 +51,8 @@
                         </div>
 
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm" style="border-radius: 15px;">
+                            <button type="submit" class="btn btn-primary btn-lg fw-bold shadow-sm"
+                                    style="border-radius: 15px;">
                                 Create Community
                             </button>
                         </div>
