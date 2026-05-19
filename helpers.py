@@ -14,17 +14,17 @@ def get_book_info(user_input: str) -> tuple | None:
 
         if "items" in response_json:
             book_info = response_json["items"][0].get("volumeInfo", {})
-            title = book_info.get("title", "Title not found")
-            authors = book_info.get("authors", ["Author not found"])
-            genre = book_info.get("categories", ["Genre not found"])
+            title = book_info.get("title", "")
+            authors = book_info.get("authors", [])
+            genre = book_info.get("categories", [])
             images = book_info.get("imageLinks", {})
-            cover_url = images.get("thumbnail", "Image not found")
+            cover_url = images.get("thumbnail", "")
 
-            return title, authors, genre, cover_url
+            return response_json
 
         return None
 
     except requests.exceptions.RequestException:
         return None
 
-print(get_book_info("The Vegetarian"))
+print(get_book_info("The Vegeterian"))

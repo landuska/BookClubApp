@@ -56,6 +56,24 @@
                             </select>
                         </div>
                     </div>
+<div class="col-md-3">
+                        <div class="d-flex align-items-center">
+        <label class="small fw-bold text-muted text-uppercase me-2 mb-0"
+               style="font-size: 0.65rem;">Genre:</label>
+
+        <select name="genre"
+                class="form-select form-select-sm border-0 shadow-sm"
+                style="border-radius: 8px;">
+            <option value="All">All</option>
+
+            {% for g in genres %}
+        <option value="{{ g }}" {% if current_genre == g %}selected{% endif %}>
+            {{ g }}
+        </option>
+            {% endfor %}
+        </select>
+    </div>
+     </div>
 
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-sm btn-dark w-100 fw-bold"

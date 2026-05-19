@@ -36,7 +36,14 @@ def index():
 @app.route('/books', methods=['GET'])
 def all_books():
     books = data_manager.get_entities(Book)
-    return render_template('books.html', books=books)
+    genre = request.args.get('genre', 'All')
+    filtered_books = data_manager.get_general_filtered_books(genre=genre)
+    genres = set()
+    if books:
+        for book in books:
+            genres.add(book.genre)
+    list_of_genres = sorted(list(genres))
+    return render_template('books.html', books=filtered_books,genres=list_of_genres, selected_genre=genre)
 
 
 # *************** AUTHORS *************
@@ -197,16 +204,21 @@ def delete_user(username):
 def user_books(username):
     user = data_manager.get_entity_by_multiple_fields(User, name=username)
 
-    status = request.args.get('status')
+    status = request.args.get('status', 'All')
     rating = request.args.get('rating', type=float)
+    genre = request.args.get('genre', 'All')
 
     all_user_books = data_manager.get_filtered_books(
         user_id=user.id,
         status=status,
-        min_rating=rating
+        min_rating=rating,
+        genre=genre
     )
+
+    genres = data_manager.get_user_genres(current_user.id)
+
     is_owner = (current_user.id == user.id)
-    return render_template('user_books.html', user=user, books=all_user_books,current_status=status,current_rating=rating,is_owner=is_owner)
+    return render_template('user_books.html', user=user, books=all_user_books,genres=genres, current_status=status,current_rating=rating,current_genre=genre,is_owner=is_owner)
 
 
 @app.route('/<username>/add_book', methods=['GET', 'POST'])
@@ -228,8 +240,9 @@ def add_book(username):
                     flash(f"Book {input_title} not found")
                     return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
-                api_title, authors, genre, cover_url = book_data
-                name_of_author = authors[0] if authors else "Unknown Author"
+                api_title, authors, genres, cover_url = book_data
+                name_of_author = authors[0] if authors else None
+                genre = genres[0] if genres else None
 
                 author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
 

@@ -47,6 +47,18 @@ class DataManager():
             raise
 
 
+    def get_general_filtered_books(self, genre: str = None):
+        all_books = self.get_entities(Book)
+
+        if all_books:
+            filtered_books = all_books
+            if genre and genre != "All":
+                filtered_books = [book for book in filtered_books if book.genre == genre]
+
+            return filtered_books
+
+        return []
+
     def add_book_to_user(self, user_id: int, book_id: int) -> None:
         existing_book_by_user = db.session.query(UserBooks).filter_by(user_id=user_id,book_id=book_id).first()
 
@@ -72,7 +84,7 @@ class DataManager():
         return []
 
 
-    def get_filtered_books(self, user_id: int, status: str = None, min_rating: float = None):
+    def get_filtered_books(self, user_id: int, status: str = None, min_rating: float = None, genre: str = None):
         all_books = self.get_books_by_user(user_id)
 
         if all_books:
@@ -84,8 +96,26 @@ class DataManager():
             if min_rating and min_rating > 0:
                 filtered_books = [book for book in filtered_books if book.rating is not None and book.rating >= min_rating]
 
+            if genre and genre != "All":
+                filtered_books = [
+                    book for book in filtered_books
+                    if book.reading_book and book.reading_book.genre == genre
+                ]
+
             return filtered_books
 
+        return []
+
+
+    def get_user_genres(self, user_id: int):
+        user_books = self.get_books_by_user(user_id)
+
+        if user_books:
+            genres = set()
+            for pair in user_books:
+                if pair.reading_book and pair.reading_book.genre:
+                    genres.add(pair.reading_book.genre)
+            return sorted(list(genres))
         return []
 
 

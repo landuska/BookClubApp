@@ -13,7 +13,42 @@
         </div>
     </div>
     <h2 class="fw-bold mb-4">Library</h2>
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 15px; background: #f8f9fa;">
+    <div class="card-body py-2 px-3">
 
+        <form method="GET" action="{{ url_for('all_books') }}"
+              class="d-flex align-items-center gap-2 flex-wrap">
+
+            <div class="d-flex align-items-center gap-2 flex-grow-1">
+                <label class="small fw-bold text-muted mb-0" style="font-size: 0.65rem;">
+                    Genre:
+                </label>
+
+                <select name="genre"
+                        class="form-select form-select-sm border-0 shadow-sm"
+                        style="border-radius: 8px;">
+
+                    <option value="All">All</option>
+
+                    {% for g in genres %}
+                    <option value="{{ g }}" {% if current_genre == g %}selected{% endif %}>
+                        {{ g }}
+                    </option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-sm btn-dark px-3 fw-bold"
+                    style="border-radius: 8px;">
+                Filter
+            </button>
+
+        </form>
+
+    </div>
+</div>
     <div class="row">
         {% for book in books %}
         <div class="col-lg-2 col-md-3 col-sm-4 col-6 mb-4">
