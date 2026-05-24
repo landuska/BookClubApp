@@ -115,6 +115,9 @@ def load_user(user_id):
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+
     if request.method == 'POST':
         username = request.form.get('username').strip().lower()
         password = request.form.get('password').strip()
@@ -136,10 +139,6 @@ def register():
 
         except Exception as e:
             flash(f"Some error occurred. Please try again: {str(e)}")
-
-
-    if request.method == 'GET':
-        return render_template('register.html')
 
 
 @app.route('/', methods=['POST'])
@@ -165,7 +164,7 @@ def login():
         flash(f"Some error occurred. Please try again: {str(e)}")
 
 
-@app.route('/<username>')
+@app.route('/<username>', methods=['GET'])
 @login_required
 def user_page(username):
     return render_template('user_page.html', username=username)
@@ -237,6 +236,9 @@ def user_books(username):
 @app.route('/<username>/add_book', methods=['GET', 'POST'])
 @login_required
 def add_book(username):
+    if request.method == 'GET':
+        return render_template('add_book.html', username=current_user.name)
+
     if request.method == 'POST':
         input_title = request.form.get('title', '').strip()
 
@@ -244,57 +246,66 @@ def add_book(username):
             flash("No book title provided")
             return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
-        try:
-            book_obj = data_manager.get_entity_by_multiple_fields(Book, title=input_title)
-            if not book_obj:
-                api_book_data = get_book_info(input_title)
+        api_book_data = get_book_info(input_title)
 
-                if not api_book_data:
-                    flash(f"Book {input_title} not found")
-                    return redirect(request.referrer or url_for('add_book', username=current_user.name))
+        if not api_book_data:
+            flash("Book not found")
+            return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
-                name_of_author = api_book_data.get('author')
-                author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
+        return render_template(
+            "confirm_book.html",
+            book=api_book_data
+        )
 
-                if not author_obj:
-                    data_manager.add_author(name=name_of_author)
 
-                author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
+@app.route('/<username>/confirm_add_book', methods=['POST'])
+@login_required
+def confirm_add_book(username):
+    try:
+        api_book_isbn = request.form.get('isbn')
+        api_book_title = request.form.get('title')
+        api_book_description = request.form.get('description', '')
+        api_book_name_of_author = request.form.get('author')
+        api_book_genre = request.form.get('genre', '')
+        api_book_cover_url = request.form.get('cover_url', '')
 
-                new_book = Book(
-                    isbn=api_book_data.get("isbn", ""),
-                    description=api_book_data.get("description", ""),
-                    title=api_book_data.get("title", ""),
-                    author_id=author_obj.author_id,
-                    genre=api_book_data.get("genre", ""),
-                    cover_url=api_book_data.get("cover_url", "")
-                )
 
-                data_manager.add_book(new_book)
+        book_obj = data_manager.get_entity_by_multiple_fields(Book, isbn=api_book_isbn)
 
-                book_obj = data_manager.get_entity_by_multiple_fields(Book, isbn=new_book.isbn)
+        if not book_obj:
+            name_of_author = api_book_name_of_author
+            author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
 
-            user_book = UserBooks(
-                user_id=current_user.id,
-                book_id=book_obj.book_id
+            if not author_obj:
+                data_manager.add_author(name=name_of_author)
+
+            author_obj = data_manager.get_entity_by_multiple_fields(Author, author_name=name_of_author)
+
+            new_book = Book(
+                isbn=api_book_isbn,
+                description=api_book_description,
+                title=api_book_title,
+                author_id=author_obj.author_id,
+                genre=api_book_genre,
+                cover_url=api_book_cover_url
             )
 
-            data_manager.add_book_to_user(user_book.user_id, user_book.book_id)
-            flash(f"Book '{book_obj.title}' was added successfully")
+            data_manager.add_book(new_book)
+            book_obj = data_manager.get_entity_by_multiple_fields(Book, isbn=new_book.isbn)
 
-        except ValueError as e:
-            flash(str(e))
+        data_manager.add_book_to_user(current_user.id, book_obj.book_id)
+        flash(f"Book '{book_obj.title}' was added successfully")
 
-        except SQLAlchemyError as e:
-            flash(f"Database error: {str(e)}")
+    except ValueError as e:
+        flash(str(e))
 
-        except Exception as e:
-            flash(f"Some error occurred. Please try again: {str(e)}")
+    except SQLAlchemyError as e:
+        flash(f"Database error: {str(e)}")
 
-        return redirect(request.referrer or url_for('add_book', username=current_user.name))
+    except Exception as e:
+        flash(f"Some error occurred. Please try again: {str(e)}")
 
-    if request.method == 'GET':
-        return render_template('add_book.html', username=current_user.name)
+    return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
 
 @app.route('/<int:user_id>/user_books/<int:book_id>', methods=['GET'])
@@ -383,6 +394,10 @@ def user_communities(username):
 @app.route('/communities/create', methods=['GET', 'POST'])
 @login_required
 def create_community():
+
+    if request.method == 'GET':
+        return render_template('create_community.html')
+
     if request.method == 'POST':
         input_name = request.form.get('name')
         input_description = request.form.get('description')
@@ -412,8 +427,6 @@ def create_community():
 
         return redirect(url_for('create_community'))
 
-    if request.method == 'GET':
-        return render_template('create_community.html')
 
 
 @app.route('/communities/<int:community_id>/update', methods=['POST'])

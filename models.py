@@ -34,6 +34,8 @@ class Book(db.Model):
     __tablename__ = 'books'
 
     book_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    isbn: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey('authors.author_id', ondelete='CASCADE'), nullable=False)
     genre: Mapped[str] = mapped_column(String, nullable=True)
