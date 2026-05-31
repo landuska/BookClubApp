@@ -56,7 +56,8 @@ def book_public(book_id):
     if request.method == 'POST':
         summary = get_ai_summary(
             book.title,
-            book.author_of_book.author_name
+            book.author_of_book.author_name,
+            book.description
         ).strip()
         return render_template("book_public.html", book=book, summary=summary)
 
@@ -250,15 +251,15 @@ def add_book(username):
             flash("No book title provided")
             return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
-        api_book_data = get_book_info(input_title)
+        api_books = get_books_info(input_title)
 
-        if not api_book_data:
+        if not api_books:
             flash("Book not found")
             return redirect(request.referrer or url_for('add_book', username=current_user.name))
 
         return render_template(
             "confirm_book.html",
-            book=api_book_data
+            books=api_books
         )
 
 
@@ -325,7 +326,8 @@ def user_book_info(user_id, book_id):
     if request.method == "POST":
         summary = get_ai_summary(
             user_book.reading_book.title,
-            user_book.reading_book.author_of_book.author_name
+            user_book.reading_book.author_of_book.author_name,
+            user_book.reading_book.description
         ).strip()
         return render_template('book_info.html', book=user_book, summary=summary, is_owner=is_owner)
 
@@ -338,6 +340,9 @@ def update_book_info(book_id):
     status = request.form.get('status')
     rating = request.form.get('rating')
     note = request.form.get('note')
+
+    rating = float(rating) if rating else None
+
     try:
         data_manager.update_user_book(current_user.id, book_id, status, rating, note)
         flash("Book was updated successfully")

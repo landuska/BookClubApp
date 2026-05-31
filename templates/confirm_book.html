@@ -2,70 +2,66 @@
 
 {% block content %}
 
-<div class="container py-5 text-center">
-    <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
-        <i data-lucide="book-check"
-           style="color: var(--geo-dark-blue); width: 28px; height: 28px;"></i>
+<div class="container py-4">
+    <h5 class="mb-3 text-center" style="color: var(--geo-dark-blue);">
+        Select book
+    </h5>
+    <div class="list-group">
+        {% for book in books %}
+        <div class="list-group-item d-flex align-items-center justify-content-between py-2">
+            <div class="d-flex align-items-center gap-2">
 
-        <h3 class="mb-0" style="color: var(--geo-dark-blue);">
-            Is this the book you meant?
-        </h3>
-    </div>
-    <div class="card p-4 shadow-sm mx-auto"
-         style="max-width: 400px;
-                border-radius: 15px;
-                background: #ffffff;
-                border: 2px solid var(--geo-pastel);">
+                {% if book.cover_url %}
+                <img src="{{ book.cover_url }}"
+                     style="height: 50px; width: 35px; object-fit: cover; border-radius: 4px;">
+                {% else %}
+                <div style="height: 50px; width: 35px; background: #eee;
+                            display:flex; align-items:center; justify-content:center;
+                            font-size: 10px;">
+                    N/A
+                </div>
+                {% endif %}
+                <div style="text-align: left;">
+                    <div style="font-size: 0.85rem; font-weight: 600; color: var(--geo-dark-blue);">
+                        {{ book.title }}
+                    </div>
+                    <div style="font-size: 0.75rem; color: gray;">
+                        {{ book.author }} · {{ book.genre }}
+                    </div>
+                </div>
+            </div>
+            <form method="POST"
+                  action="{{ url_for('confirm_add_book', username=current_user.name) }}"
+                  class="m-0">
 
-        {% if book.cover_url %}
-        <img src="{{ book.cover_url }}"
-             class="mb-3 mx-auto"
-             style="height: 180px; object-fit: contain;">
-        {% else %}
-        <div class="d-flex align-items-center justify-content-center text-muted small"
-             style="height: 180px;">
-            No Cover
+                <input type="hidden" name="title" value="{{ book.title }}">
+                <input type="hidden" name="author" value="{{ book.author }}">
+                <input type="hidden" name="isbn" value="{{ book.isbn }}">
+                <input type="hidden" name="description" value="{{ book.description }}">
+                <input type="hidden" name="genre" value="{{ book.genre }}">
+                <input type="hidden" name="cover_url" value="{{ book.cover_url }}">
+
+                <button class="btn btn-sm btn-geo-primary">
+                    Add
+                </button>
+
+            </form>
+
         </div>
-        {% endif %}
 
-        <h5 class="fw-bold" style="color: var(--geo-dark-blue);">
-            {{ book.title }}
-        </h5>
-
-        <p class="text-muted mb-1">
-            {{ book.author }}
-        </p>
-
-        <p class="small"
-           style="color: var(--geo-orange);">
-            {{ book.genre }}
-        </p>
-
-        <form method="POST"
-              action="{{ url_for('confirm_add_book', username=current_user.name) }}">
-
-            <input type="hidden" name="title" value="{{ book.title }}">
-            <input type="hidden" name="author" value="{{ book.author }}">
-            <input type="hidden" name="isbn" value="{{ book.isbn }}">
-            <input type="hidden" name="description" value="{{ book.description }}">
-            <input type="hidden" name="genre" value="{{ book.genre }}">
-            <input type="hidden" name="cover_url" value="{{ book.cover_url }}">
-
-            <button class="btn w-100 mt-3 fw-bold btn-geo-primary">
-                Add this book
-            </button>
-        </form>
-
-        <a href="{{ url_for('add_book', username=current_user.name) }}"
-           class="btn w-100 mt-2"
-           style="border: 1px solid var(--geo-pastel);
-                  color: var(--geo-dark-blue);
-                  border-radius: 10px;">
-            Back
-        </a>
+        {% endfor %}
 
     </div>
+</div>
+<div class="text-center mt-3">
+
+    <a href="{{ url_for('add_book', username=current_user.name) }}"
+       class="btn btn-sm"
+       style="border: 1px solid var(--geo-pastel);
+              color: var(--geo-dark-blue);
+              border-radius: 8px;">
+        Back
+    </a>
 
 </div>
-
 {% endblock %}

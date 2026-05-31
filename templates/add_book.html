@@ -11,9 +11,8 @@
                     <h2 class="fw-bold mb-4 text-center" style="color: var(--geo-dark-blue);">Find a Book</h2>
                     <form action="{{ url_for('add_book', username=current_user.name) }}" method="POST">
                         <div class="mb-4">
-                            <label class="form-label fw-semibold" style="color: var(--geo-dark-blue);">Book Title</label>
-                            <input type="text" name="title" class="form-control form-control-lg"
-                                   placeholder="e.g. The Great Gatsby" required
+                            <label class="form-label fw-semibold" style="color: var(--geo-dark-blue);">Book Title / Title with Author</label>
+                            <input type="text" name="title" class="form-control form-control-lg" required
                                    style="border-radius: 10px; border: 2px solid var(--geo-dark-blue);">
                         </div>
                         <div class="d-grid">
